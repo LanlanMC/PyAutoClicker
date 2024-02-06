@@ -7,7 +7,7 @@ import mouse
 
 # import keybd
 
-__all__ = ["LeftClickThread", "RightClickThread"]
+__all__ = ["LeftClickThread", "RightClickThread", "UpdaterThread"]
 
 
 class LeftClickThread(threading.Thread):
@@ -15,7 +15,6 @@ class LeftClickThread(threading.Thread):
         super().__init__(name="LeftClickThread", daemon=True)
 
         self.click_interval = click_interval
-        print(click_interval)
         self.running = True
         self.pressed = False
 
@@ -61,3 +60,23 @@ class RightClickThread(threading.Thread):
     def terminate(self):
         """终止线程"""
         self.running = False
+
+
+class UpdaterThread(threading.Thread):
+    def __init__(self, parent, update_interval: float = 0.02):
+        super().__init__(name="UpdaterThread", target=self.update, daemon=True)
+        self.parent = parent
+        self.recent = parent.seperate_control.get()
+        self.state_dict = {"开始": "disabled", "停止": "normal"}
+        self.update_interval = update_interval
+
+    def update(self):
+        while True:
+            if self.parent.seperate_control.get() != self.recent:
+                if self.parent.seperate_control.get():
+                    new_state = self.state_dict[self.parent.button_text.get()] and self.parent.seperate_control.get()
+                else:
+                    new_state = "disabled"
+                self.parent.click_interval_frame.set_interval_frame_state(new_state)
+                self.recent = self.parent.seperate_control.get()
+            time.sleep(self.update_interval)

@@ -1,8 +1,8 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-from typing import Literal
+from typing import Literal, Optional
 
-import _threadclicking
+import thread
 
 
 class MainWindow(tk.Tk):
@@ -14,8 +14,8 @@ class MainWindow(tk.Tk):
         self.deiconify()
 
         # Threads
-        self.left_thread: _threadclicking.LeftClickThread | None = None
-        self.right_thread = None
+        self.left_thread: Optional[thread.LeftClickThread] = None
+        self.right_thread: Optional[thread.LeftClickThread] = None
 
         # Variables
         self.button_text = tk.StringVar(value="开始")
@@ -32,9 +32,6 @@ class MainWindow(tk.Tk):
 
         TipsFrame(self, width=312, height=160).place(x=324, y=180)
 
-        self.hint_label = ttk.Label(self, text="过低的点击间隔可能导致鼠标卡顿。")
-        self.hint_label.place(x=12, y=320)
-
         self.control_button = ttk.Button(self, textvariable=self.button_text, command=self.control)
         self.control_button.place(x=400, y=352)
 
@@ -45,9 +42,12 @@ class MainWindow(tk.Tk):
         self.left_interval = self.click_interval_frame.left_interval
         self.right_interval = self.click_interval_frame.right_interval
 
+        self.updater = thread.UpdaterThread(self, 0.05)
+        self.updater.start()
+
     def _create_thread(self):
-        self.left_thread = _threadclicking.LeftClickThread(click_interval=self.all_interval.get() / 1000)
-        self.right_thread = _threadclicking.RightClickThread(click_interval=self.all_interval.get() / 1000)
+        self.left_thread = thread.LeftClickThread(click_interval=self.all_interval.get() / 1000)
+        self.right_thread = thread.RightClickThread(click_interval=self.all_interval.get() / 1000)
 
         self.left_thread.start()
         self.right_thread.start()
@@ -72,6 +72,7 @@ class MainWindow(tk.Tk):
 
 
 class ClickIntervalFrame(ttk.LabelFrame):
+
     def __init__(self, master, *, width, height, labelwidget=None):
         if labelwidget is None:
             super().__init__(master, width=width, height=height, text="点击间隔")
@@ -89,18 +90,26 @@ class ClickIntervalFrame(ttk.LabelFrame):
 
         self.sep_checkbox = ttk.Checkbutton(self, variable=self.seperate_control, text="分别控制")
         self.all_spinbox = ttk.Spinbox(self, from_=0, to=5000, increment=5, textvariable=self.all_interval, width=7)
-        self.interval_frame = ttk.LabelFrame(self, width=272, height=172, labelwidget=self.sep_checkbox)
+        self.interval_frame = ttk.LabelFrame(self, width=272, height=160, labelwidget=self.sep_checkbox)
         self.left_spinbox = ttk.Spinbox(self.interval_frame, from_=0, to=5000, increment=5,
+                                        state=tk.NORMAL if self.seperate_control.get() else tk.DISABLED,
                                         textvariable=self.left_interval, width=7)
         self.right_spinbox = ttk.Spinbox(self.interval_frame, from_=0, to=5000, increment=5,
+                                         state=tk.NORMAL if self.seperate_control.get() else tk.DISABLED,
                                          textvariable=self.right_interval, width=7)
 
         self.all_unit_label = ttk.Label(self, text="ms")
-        self.left_unit_label = ttk.Label(self.interval_frame, text="ms")
-        self.right_unit_label = ttk.Label(self.interval_frame, text="ms")
+        self.left_unit_label = ttk.Label(self.interval_frame, text="ms",
+                                         state=tk.NORMAL if self.seperate_control.get() else tk.DISABLED)
+        self.right_unit_label = ttk.Label(self.interval_frame, text="ms",
+                                          state=tk.NORMAL if self.seperate_control.get() else tk.DISABLED)
 
-        self.left_desc_label = ttk.Label(self.interval_frame, text="左键:")
-        self.right_desc_label = ttk.Label(self.interval_frame, text="右键:")
+        self.left_desc_label = ttk.Label(self.interval_frame, text="左键:",
+                                         state=tk.NORMAL if self.seperate_control.get() else tk.DISABLED)
+        self.right_desc_label = ttk.Label(self.interval_frame, text="右键:",
+                                          state=tk.NORMAL if self.seperate_control.get() else tk.DISABLED)
+
+        self.hint_label = ttk.Label(self, text="过低的点击间隔可能导致鼠标卡顿。")
 
         # Place widgets
         self.all_desc_label.place(x=12, y=12)
@@ -117,17 +126,23 @@ class ClickIntervalFrame(ttk.LabelFrame):
         self.left_desc_label.place(x=32, y=0)
         self.right_desc_label.place(x=32, y=32)
 
+        self.hint_label.place(x=4, y=240)
+
     def set_state(self, state: Literal["normal", "disabled", "active"]) -> None:
         self.all_desc_label["state"] = state
         self.all_spinbox["state"] = state
         self.all_unit_label["state"] = state
+        self.set_interval_frame_state(state if self.seperate_control.get() else tk.DISABLED)
+        self.sep_checkbox["state"] = state
+        self.hint_label["state"] = state
+
+    def set_interval_frame_state(self, state: Literal["normal", "disabled", "active"]) -> None:
         self.left_desc_label["state"] = state
         self.left_spinbox["state"] = state
         self.left_unit_label["state"] = state
         self.right_desc_label["state"] = state
         self.right_spinbox["state"] = state
         self.right_unit_label["state"] = state
-        self.sep_checkbox["state"] = state
 
 
 class SettingFrame(ttk.LabelFrame):
@@ -141,7 +156,7 @@ class SettingFrame(ttk.LabelFrame):
         self.auto_tap1 = tk.BooleanVar(value=False)
         self.auto_tap2 = tk.BooleanVar(value=False)
 
-        # Defin widgets
+        # Define widgets
         self.auto_tap1_checkbox = ttk.Checkbutton(self, variable=self.auto_tap1, text="自动切换武器")
         self.auto_tap2_checkbox = ttk.Checkbutton(self, variable=self.auto_tap2, text="自动切换方块")
 

@@ -46,8 +46,8 @@ class MainWindow(tk.Tk):
         self.updater.start()
 
     def _create_thread(self):
-        self.left_thread = thread.LeftClickThread(click_interval=self.all_interval.get() / 1000)
-        self.right_thread = thread.RightClickThread(click_interval=self.all_interval.get() / 1000)
+        self.left_thread = thread.LeftClickThread(self.all_interval.get() / 1000, self.auto_tap1.get())
+        self.right_thread = thread.RightClickThread(self.all_interval.get() / 1000, self.auto_tap2.get())
 
         self.left_thread.start()
         self.right_thread.start()

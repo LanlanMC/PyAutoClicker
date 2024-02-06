@@ -4,19 +4,20 @@ import time
 from pynput.mouse import Button, Listener
 
 import mouse
-
-# import keybd
+import keybd
 
 __all__ = ["LeftClickThread", "RightClickThread", "UpdaterThread"]
 
 
 class LeftClickThread(threading.Thread):
-    def __init__(self, click_interval: float):
+    def __init__(self, click_interval: float, auto_tap: bool):
         super().__init__(name="LeftClickThread", daemon=True)
 
         self.click_interval = click_interval
         self.running = True
         self.pressed = False
+        self.auto_tap = auto_tap
+        self.last_tapped = False
 
     def on_click(self, /, *args):
         _, _, button, pressed = args
@@ -27,7 +28,12 @@ class LeftClickThread(threading.Thread):
         with Listener(on_click=self.on_click):
             while self.running:
                 if self.pressed:
+                    if self.auto_tap and not self.last_tapped:
+                        keybd.keyTap('1')
+                        self.last_tapped = True
                     mouse.left_click()
+                else:
+                    self.last_tapped = False
                 if self.click_interval:
                     time.sleep(self.click_interval)
 
@@ -37,12 +43,14 @@ class LeftClickThread(threading.Thread):
 
 
 class RightClickThread(threading.Thread):
-    def __init__(self, click_interval: float):
+    def __init__(self, click_interval: float, auto_tap: bool):
         super().__init__(name="RightClickThread", daemon=True)
 
         self.click_interval = click_interval
         self.running = True
         self.pressed = False
+        self.auto_tap = auto_tap
+        self.last_tapped = False
 
     def on_click(self, /, *args):
         _, _, button, pressed = args
@@ -53,7 +61,12 @@ class RightClickThread(threading.Thread):
         with Listener(on_click=self.on_click):
             while self.running:
                 if self.pressed:
+                    if self.auto_tap and not self.last_tapped:
+                        keybd.keyTap('2')
+                        self.last_tapped = True
                     mouse.right_click()
+                else:
+                    self.last_tapped = False
                 if self.click_interval:
                     time.sleep(self.click_interval)
 

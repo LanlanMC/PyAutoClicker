@@ -1,5 +1,8 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+from typing import Literal
+
+import _threadclicking
 
 
 class MainWindow(tk.Tk):
@@ -9,6 +12,10 @@ class MainWindow(tk.Tk):
         self.title("PyAutoClicker")
         self.resizable(False, False)
         self.deiconify()
+
+        # Threads
+        self.left_thread: _threadclicking.LeftClickThread | None = None
+        self.right_thread = None
 
         # Variables
         self.button_text = tk.StringVar(value="开始")
@@ -28,8 +35,8 @@ class MainWindow(tk.Tk):
         self.hint_label = ttk.Label(self, text="过低的点击间隔可能导致鼠标卡顿。")
         self.hint_label.place(x=12, y=320)
 
-        self.start_button = ttk.Button(self, textvariable=self.button_text)
-        self.start_button.place(x=400, y=352)
+        self.control_button = ttk.Button(self, textvariable=self.button_text, command=self.control)
+        self.control_button.place(x=400, y=352)
 
         self.auto_tap1 = self.settings_frame.auto_tap1
         self.auto_tap2 = self.settings_frame.auto_tap2
@@ -37,6 +44,31 @@ class MainWindow(tk.Tk):
         self.all_interval = self.click_interval_frame.all_interval
         self.left_interval = self.click_interval_frame.left_interval
         self.right_interval = self.click_interval_frame.right_interval
+
+    def _create_thread(self):
+        self.left_thread = _threadclicking.LeftClickThread(click_interval=self.all_interval.get() / 1000)
+        self.right_thread = _threadclicking.RightClickThread(click_interval=self.all_interval.get() / 1000)
+
+        self.left_thread.start()
+        self.right_thread.start()
+
+    def _terminate_thread(self):
+        if self.left_thread is not None:
+            self.left_thread.terminate()
+        if self.right_thread is not None:
+            self.right_thread.terminate()
+
+    def control(self):
+        if self.button_text.get() == "开始":
+            self._create_thread()
+            self.button_text.set("停止")
+            self.click_interval_frame.set_state(tk.DISABLED)
+            self.settings_frame.set_state(tk.DISABLED)
+        else:
+            self._terminate_thread()
+            self.button_text.set("开始")
+            self.click_interval_frame.set_state(tk.NORMAL)
+            self.settings_frame.set_state(tk.NORMAL)
 
 
 class ClickIntervalFrame(ttk.LabelFrame):
@@ -85,6 +117,18 @@ class ClickIntervalFrame(ttk.LabelFrame):
         self.left_desc_label.place(x=32, y=0)
         self.right_desc_label.place(x=32, y=32)
 
+    def set_state(self, state: Literal["normal", "disabled", "active"]) -> None:
+        self.all_desc_label["state"] = state
+        self.all_spinbox["state"] = state
+        self.all_unit_label["state"] = state
+        self.left_desc_label["state"] = state
+        self.left_spinbox["state"] = state
+        self.left_unit_label["state"] = state
+        self.right_desc_label["state"] = state
+        self.right_spinbox["state"] = state
+        self.right_unit_label["state"] = state
+        self.sep_checkbox["state"] = state
+
 
 class SettingFrame(ttk.LabelFrame):
     def __init__(self, master, *, width, height, labelwidget=None):
@@ -110,6 +154,12 @@ class SettingFrame(ttk.LabelFrame):
 
         self.auto_tap1_desc_label.place(x=12, y=28)
         self.auto_tap2_desc_label.place(x=12, y=92)
+
+    def set_state(self, state: Literal["normal", "disabled", "active"]) -> None:
+        self.auto_tap1_checkbox["state"] = state
+        self.auto_tap1_desc_label["state"] = state
+        self.auto_tap2_checkbox["state"] = state
+        self.auto_tap2_desc_label["state"] = state
 
 
 class TipsFrame(tk.LabelFrame):

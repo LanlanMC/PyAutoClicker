@@ -46,8 +46,12 @@ class MainWindow(tk.Tk):
         self.updater.start()
 
     def _create_thread(self):
-        self.left_thread = thread.LeftClickThread(self.all_interval.get() / 1000, self.auto_tap1.get())
-        self.right_thread = thread.RightClickThread(self.all_interval.get() / 1000, self.auto_tap2.get())
+        if self.seperate_control.get():
+            self.left_thread = thread.LeftClickThread(self.left_interval.get() / 1000, self.auto_tap1.get())
+            self.right_thread = thread.RightClickThread(self.right_interval.get() / 1000, self.auto_tap2.get())
+        else:
+            self.left_thread = thread.LeftClickThread(self.all_interval.get() / 1000, self.auto_tap1.get())
+            self.right_thread = thread.RightClickThread(self.all_interval.get() / 1000, self.auto_tap2.get())
 
         self.left_thread.start()
         self.right_thread.start()
@@ -109,7 +113,7 @@ class ClickIntervalFrame(ttk.LabelFrame):
         self.right_desc_label = ttk.Label(self.interval_frame, text="右键:",
                                           state=tk.NORMAL if self.seperate_control.get() else tk.DISABLED)
 
-        self.hint_label = ttk.Label(self, text="过低的点击间隔可能导致鼠标卡顿。")
+        self.hint_label = ttk.Label(self, text="过低的点击间隔(0)可能导致鼠标卡顿")
 
         # Place widgets
         self.all_desc_label.place(x=12, y=12)
@@ -126,7 +130,7 @@ class ClickIntervalFrame(ttk.LabelFrame):
         self.left_desc_label.place(x=32, y=0)
         self.right_desc_label.place(x=32, y=32)
 
-        self.hint_label.place(x=4, y=240)
+        self.hint_label.place(x=0, y=240)
 
     def set_state(self, state: Literal["normal", "disabled", "active"]) -> None:
         self.all_desc_label["state"] = state

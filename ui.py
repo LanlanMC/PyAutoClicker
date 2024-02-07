@@ -158,7 +158,7 @@ class SettingFrame(ttk.LabelFrame):
             super().__init__(master, width=width, height=height, labelwidget=labelwidget)
 
         # Variables
-        self.auto_tap1 = tk.BooleanVar(value=False)
+        self.auto_tap1 = tk.BooleanVar(value=True)
         self.auto_tap2 = tk.BooleanVar(value=False)
 
         # Define widgets

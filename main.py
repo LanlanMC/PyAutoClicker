@@ -1,3 +1,7 @@
+import sys
+
+assert sys.platform == "win32", "This program only works on Windows."
+
 import ui
 from ctypes import windll
 

@@ -9,12 +9,6 @@ import keybd
 __all__ = ["LeftClickThread", "RightClickThread", "UpdaterThread"]
 
 
-def sleep(secs: float):
-    start, end = time.perf_counter(), 0
-    while end - start < secs:
-        end = time.perf_counter()
-
-
 class LeftClickThread(threading.Thread):
     def __init__(self, click_interval: float, auto_tap: bool):
         super().__init__(name="LeftClickThread", daemon=True)
@@ -99,17 +93,3 @@ class UpdaterThread(threading.Thread):
                 self.parent.click_interval_frame.set_interval_frame_state(new_state)
                 self.recent = self.parent.seperate_control.get()
             time.sleep(self.update_interval)
-
-
-if __name__ == '__main__':
-    import statistics
-
-    a = []
-    for i in range(1000):
-        start = time.perf_counter()
-        sleep(0.001)
-        end = time.perf_counter()
-        a.append(end - start)
-
-    print(abs(max(a) - 0.001) * 1000, abs(min(a) - 0.001) * 1000)
-    print(statistics.mean(a), statistics.stdev(a) * 100_000)

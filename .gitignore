@@ -1,5 +1,11 @@
-__pycache__
-.idea
+__pycache__/
+.idea/
 
 *.pyc
 desktop.ini
+
+# These are generated bu PyInstaller
+dist/
+build/
+
+main.py.spec

@@ -6,8 +6,9 @@ import thread
 
 
 class MainWindow(tk.Tk):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, scale_factor: float = 100, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.tk.call("tk", "scaling", scale_factor / 75)
         self.geometry("644x400+512+512")
         self.title("PyAutoClicker")
         self.resizable(False, False)
@@ -191,3 +192,11 @@ class TipsFrame(tk.LabelFrame):
             super().__init__(master, width=width, height=height, labelwidget=labelwidget)
 
         # Setup UI
+        tips = '\n'.join((
+            "5  CPS:187ms   30 CPS: 30ms",
+            "10 CPS: 92ms   40 CPS: 15ms",
+            "12 CPS: 77ms   60 CPS: 14ms",
+            "15 CPS: 61ms   64 CPS:  1ms",
+            "20 CPS: 45ms  6426 CPS: 0ms"
+        ))
+        ttk.Label(self, text=tips, font=("Consolas", 9)).place(x=4, y=0)

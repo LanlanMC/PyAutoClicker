@@ -1,5 +1,4 @@
 import ui
-import tkinter as tk
 from ctypes import windll
 
 windll.shcore.SetProcessDpiAwareness(1)

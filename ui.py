@@ -1,3 +1,4 @@
+# -*- encoding=UTF-8 -*-
 import tkinter as tk
 import tkinter.ttk as ttk
 from typing import Literal, Optional

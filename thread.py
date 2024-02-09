@@ -1,3 +1,4 @@
+# -*- encoding=UTF-8 -*-
 import threading
 import time
 
@@ -91,5 +92,11 @@ class UpdaterThread(threading.Thread):
                 else:
                     new_state = "disabled"
                 self.parent.click_interval_frame.set_interval_frame_state(new_state)
+                self.parent.click_interval_frame.all_desc_label[
+                    "state"] = "disabled" if self.parent.seperate_control.get() else "normal"
+                self.parent.click_interval_frame.all_spinbox[
+                    "state"] = "disabled" if self.parent.seperate_control.get() else "normal"
+                self.parent.click_interval_frame.all_unit_label[
+                    "state"] = "disabled" if self.parent.seperate_control.get() else "normal"
                 self.recent = self.parent.seperate_control.get()
             time.sleep(self.update_interval)

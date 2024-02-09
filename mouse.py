@@ -1,3 +1,4 @@
+# -*- encoding=UTF-8 -*-
 import ctypes
 
 from ctypes import windll

@@ -1,3 +1,4 @@
+# -*- encoding=UTF-8 -*-
 import sys
 
 assert sys.platform == "win32", "This program only works on Windows."

@@ -29,13 +29,15 @@ class MainWindow(tk.Tk):
         self.click_interval_frame = ClickIntervalFrame(self, width=300, height=300)
         self.click_interval_frame.place(x=16, y=12)
 
-        self.settings_frame = SettingFrame(self, width=312, height=160)
+        self.settings_frame = SettingFrame(self, width=312, height=300)
         self.settings_frame.place(x=324, y=12)
 
-        TipsFrame(self, width=312, height=160).place(x=324, y=180)
+        TipsFrame(self, width=312, height=160).place(x=644, y=12)
 
-        self.control_button = ttk.Button(self, textvariable=self.button_text, command=self.control)
-        self.control_button.place(x=400, y=352)
+        self.control_button = ttk.Button(self, textvariable=self.button_text, command=self.control, width=8)
+        self.control_button.place(x=420, y=348)
+
+        ttk.Button(self, text="?", command=self.expand_hint, width=2).place(x=556, y=348)
 
         self.auto_tap1 = self.settings_frame.auto_tap1
         self.auto_tap2 = self.settings_frame.auto_tap2
@@ -46,6 +48,14 @@ class MainWindow(tk.Tk):
 
         self.updater = thread.UpdaterThread(self, 0.05)
         self.updater.start()
+
+    def expand_hint(self):
+        if "644x400+" in self.geometry():
+            self.geometry("968x400")
+        elif "968x400+" in self.geometry():
+            self.geometry("644x400")
+        else:
+            raise RuntimeError(f"Bad geometry: {self.geometry()}")
 
     def _create_thread(self):
         if self.seperate_control.get():

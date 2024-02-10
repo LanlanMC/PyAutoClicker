@@ -1,6 +1,7 @@
 # -*- encoding=UTF-8 -*-
 import threading
 import time
+from random import gauss
 
 from pynput.mouse import Button, Listener
 
@@ -11,7 +12,7 @@ __all__ = ["LeftClickThread", "RightClickThread", "UpdaterThread"]
 
 
 class LeftClickThread(threading.Thread):
-    def __init__(self, click_interval: float, auto_tap: bool):
+    def __init__(self, click_interval: float, auto_tap: bool, rand_bias: int):
         super().__init__(name="LeftClickThread", daemon=True)
 
         self.click_interval = click_interval
@@ -19,6 +20,7 @@ class LeftClickThread(threading.Thread):
         self.pressed = False
         self.auto_tap = auto_tap
         self.last_tapped = False
+        self.rand_bias = rand_bias
 
     def on_click(self, /, *args):
         _, _, button, pressed = args
@@ -36,7 +38,10 @@ class LeftClickThread(threading.Thread):
                 else:
                     self.last_tapped = False
                 if self.click_interval:
-                    time.sleep(self.click_interval)
+                    # Limit the range of values to avoid extreme values
+                    rand_bias = min(self.click_interval * .9,
+                                    max(self.click_interval * .1, gauss(0, .005 * self.rand_bias)))
+                    time.sleep(self.click_interval + rand_bias)
 
     def terminate(self):
         """终止线程"""
@@ -44,7 +49,7 @@ class LeftClickThread(threading.Thread):
 
 
 class RightClickThread(threading.Thread):
-    def __init__(self, click_interval: float, auto_tap: bool):
+    def __init__(self, click_interval: float, auto_tap: bool, rand_bias):
         super().__init__(name="RightClickThread", daemon=True)
 
         self.click_interval = click_interval
@@ -52,6 +57,7 @@ class RightClickThread(threading.Thread):
         self.pressed = False
         self.auto_tap = auto_tap
         self.last_tapped = False
+        self.rand_bias = rand_bias
 
     def on_click(self, /, *args):
         _, _, button, pressed = args
@@ -69,7 +75,10 @@ class RightClickThread(threading.Thread):
                 else:
                     self.last_tapped = False
                 if self.click_interval:
-                    time.sleep(self.click_interval)
+                    # Limit the range of values to avoid extreme values
+                    rand_bias = min(self.click_interval * .9,
+                                    max(self.click_interval * .1, gauss(0, .005 * self.rand_bias)))
+                    time.sleep(self.click_interval + rand_bias)
 
     def terminate(self):
         """终止线程"""

@@ -32,15 +32,14 @@ class MainWindow(tk.Tk):
         self.settings_frame = SettingFrame(self, width=312, height=300)
         self.settings_frame.place(x=324, y=12)
 
-        TipsFrame(self, width=312, height=160).place(x=644, y=12)
-
         self.control_button = ttk.Button(self, textvariable=self.button_text, command=self.control, width=8)
         self.control_button.place(x=420, y=348)
 
-        ttk.Button(self, text="?", command=self.expand_hint, width=2).place(x=556, y=348)
+        # ttk.Button(self, text="?", command=self.expand_hint, width=2).place(x=556, y=348)
 
         self.auto_tap1 = self.settings_frame.auto_tap1
         self.auto_tap2 = self.settings_frame.auto_tap2
+        self.add_rand_bias = self.settings_frame.add_rand_bias
         self.seperate_control = self.click_interval_frame.seperate_control
         self.all_interval = self.click_interval_frame.all_interval
         self.left_interval = self.click_interval_frame.left_interval
@@ -49,21 +48,25 @@ class MainWindow(tk.Tk):
         self.updater = thread.UpdaterThread(self, 0.05)
         self.updater.start()
 
-    def expand_hint(self):
-        if "644x400+" in self.geometry():
-            self.geometry("968x400")
-        elif "968x400+" in self.geometry():
-            self.geometry("644x400")
-        else:
-            raise RuntimeError(f"Bad geometry: {self.geometry()}")
+    # def expand_hint(self):
+    #     if "644x400+" in self.geometry():
+    #         self.geometry("968x400")
+    #     elif "968x400+" in self.geometry():
+    #         self.geometry("644x400")
+    #     else:
+    #         raise RuntimeError(f"Bad geometry: {self.geometry()}")
 
     def _create_thread(self):
         if self.seperate_control.get():
-            self.left_thread = thread.LeftClickThread(self.left_interval.get() / 1000, self.auto_tap1.get())
-            self.right_thread = thread.RightClickThread(self.right_interval.get() / 1000, self.auto_tap2.get())
+            self.left_thread = thread.LeftClickThread(self.left_interval.get() / 1000, self.auto_tap1.get(),
+                                                      self.add_rand_bias.get())
+            self.right_thread = thread.RightClickThread(self.right_interval.get() / 1000, self.auto_tap2.get(),
+                                                        self.add_rand_bias.get())
         else:
-            self.left_thread = thread.LeftClickThread(self.all_interval.get() / 1000, self.auto_tap1.get())
-            self.right_thread = thread.RightClickThread(self.all_interval.get() / 1000, self.auto_tap2.get())
+            self.left_thread = thread.LeftClickThread(self.all_interval.get() / 1000, self.auto_tap1.get(),
+                                                      self.add_rand_bias.get())
+            self.right_thread = thread.RightClickThread(self.all_interval.get() / 1000, self.auto_tap2.get(),
+                                                        self.add_rand_bias.get())
 
         self.left_thread.start()
         self.right_thread.start()
@@ -171,6 +174,7 @@ class SettingFrame(ttk.LabelFrame):
         # Variables
         self.auto_tap1 = tk.BooleanVar(value=True)
         self.auto_tap2 = tk.BooleanVar(value=False)
+        self.add_rand_bias = tk.BooleanVar(value=True)
 
         # Define widgets
         self.auto_tap1_checkbox = ttk.Checkbutton(self, variable=self.auto_tap1, text="自动切换武器")
@@ -179,6 +183,9 @@ class SettingFrame(ttk.LabelFrame):
         self.auto_tap1_desc_label = ttk.Label(self, text="在左键时自动切换到武器（按下\"1\")")
         self.auto_tap2_desc_label = ttk.Label(self, text="在右键时自动切换到方块（按下\"2\")")
 
+        self.add_rand_bias_checkbox = ttk.Checkbutton(self, variable=self.add_rand_bias, text="向点击添加随机间隔")
+        self.add_rand_bias_label = ttk.Label(self, text="向点击间隔添加一个数学期望为点击\n间隔，方差为5的正态分布")
+
         # Place widgets
         self.auto_tap1_checkbox.place(x=12, y=0)
         self.auto_tap2_checkbox.place(x=12, y=64)
@@ -186,28 +193,13 @@ class SettingFrame(ttk.LabelFrame):
         self.auto_tap1_desc_label.place(x=12, y=28)
         self.auto_tap2_desc_label.place(x=12, y=92)
 
+        self.add_rand_bias_checkbox.place(x=12, y=128)
+        self.add_rand_bias_label.place(x=12, y=156)
+
     def set_state(self, state: Literal["normal", "disabled", "active"]) -> None:
         self.auto_tap1_checkbox["state"] = state
         self.auto_tap1_desc_label["state"] = state
         self.auto_tap2_checkbox["state"] = state
         self.auto_tap2_desc_label["state"] = state
-
-
-class TipsFrame(tk.LabelFrame):
-    """此组件是常量，在运行时无变化"""
-
-    def __init__(self, master, *, width, height, labelwidget=None):
-        if labelwidget is None:
-            super().__init__(master, width=width, height=height, text="提示")
-        else:
-            super().__init__(master, width=width, height=height, labelwidget=labelwidget)
-
-        # Setup UI
-        tips = '\n'.join((
-            "5  CPS:187ms   30 CPS: 30ms",
-            "10 CPS: 92ms   40 CPS: 15ms",
-            "12 CPS: 77ms   60 CPS: 14ms",
-            "15 CPS: 61ms   64 CPS:  1ms",
-            "20 CPS: 45ms  6426 CPS: 0ms"
-        ))
-        ttk.Label(self, text=tips, font=("Consolas", 9)).place(x=4, y=0)
+        self.add_rand_bias_label["state"] = state
+        self.add_rand_bias_checkbox["state"] = state
